@@ -1,7 +1,7 @@
 {
   "name": "Audiobook PWA",
   "short_name": "Audiobook",
-  "start_url": "/",
+  "start_url": "/https://ccxaudio.vercel.app/",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
