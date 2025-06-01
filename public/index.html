@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AudioBooks</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQXVkaW9Cb29rcyIsInNob3J0X25hbWUiOiJBdWRpb0Jvb2tzIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU5UQWlJR2hsYVdkb2REMGlOVEFpSUhabGNuTnBiMjQ5SWpFdU1TSWdlRzFzYm5NOUltaDBkSEE2THk5M2QzY3Vkek11YjNKbkx6SXdNREF2YzNabklqNDhZMmx5WTJ4bElHTjRQU0kxTUNVaUlHTjVQU0kxTUNVaUlISTlJalEwSWlCbWFXeHNQU0lqTkRVek5qQWlMejQ4TDNOMlp6ND0iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XSwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJzdGFydF91cmwiOiIuLyIsInRoZW1lX2NvbG9yIjoiIzQ1MzZhMCIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxNDJhIn0=">
     <meta name="theme-color" content="#4536a0">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjQ0IiBmaWxsPSIjNDUzNmEwIi8+PC9zdmc+">
     <style>
         * {
             margin: 0;
@@ -397,82 +395,6 @@
             box-shadow: 0 12px 35px rgba(69, 54, 160, 0.6);
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(255, 59, 48, 0.8);
-            color: white;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .book-card:hover .delete-btn {
-            display: flex;
-        }
-
-        .delete-btn:hover {
-            background: rgba(255, 59, 48, 1);
-            transform: scale(1.1);
-        }
-
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: linear-gradient(45deg, #4536a0, #6366f1);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 8px 25px rgba(69, 54, 160, 0.4);
-            z-index: 1001;
-        }
-
-        .install-prompt.show {
-            display: flex;
-        }
-
-        .install-text {
-            flex: 1;
-            margin-right: 16px;
-        }
-
-        .install-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .install-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .install-btn.primary {
-            background: white;
-            color: #4536a0;
-        }
-
-        .install-btn.secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
         @media (max-width: 768px) {
             .app-container {
                 padding: 10px;
@@ -506,16 +428,6 @@
                 bottom: 140px;
                 right: 20px;
             }
-
-            .install-prompt {
-                flex-direction: column;
-                text-align: center;
-                gap: 12px;
-            }
-
-            .install-text {
-                margin-right: 0;
-            }
         }
     </style>
 </head>
@@ -536,7 +448,7 @@
         </header>
 
         <div class="library-grid" id="library-grid">
-            <!-- Books will be inserted here -->
+            <!-- Sample books will be inserted here -->
         </div>
     </div>
 
@@ -578,23 +490,13 @@
         </div>
     </div>
 
-    <div class="install-prompt" id="install-prompt">
-        <div class="install-text">
-            <strong>Install AudioBooks</strong><br>
-            Add this app to your home screen for the best experience!
-        </div>
-        <div class="install-buttons">
-            <button class="install-btn primary" onclick="installApp()">Install</button>
-            <button class="install-btn secondary" onclick="dismissInstall()">Later</button>
-        </div>
-    </div>
-
     <audio id="audio-player" preload="metadata"></audio>
 
     <script>
-        // PWA Variables
-        let deferredPrompt;
-        let isInstalled = false;
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZXZlbnQgPT4geyBjb25zb2xlLmxvZygnU1cgaW5zdGFsbGVkJyk7IH0pOyBzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZXZlbnQgPT4geyBldmVudC5yZXNwb25kV2l0aChmZXRjaChldmVudC5yZXF1ZXN0KSk7IH0pOw==');
+        }
 
         // App State
         let books = [];
@@ -609,116 +511,38 @@
         const playBtn = document.getElementById('play-btn');
         const libraryGrid = document.getElementById('library-grid');
 
-        // IndexedDB setup for persistent storage
-        let db;
-        const DB_NAME = 'AudioBooksDB';
-        const DB_VERSION = 1;
-
-        async function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-                    if (!db.objectStoreNames.contains('books')) {
-                        const store = db.createObjectStore('books', { keyPath: 'id' });
-                        store.createIndex('title', 'title', { unique: false });
-                        store.createIndex('author', 'author', { unique: false });
-                    }
-                };
-            });
-        }
-
-        async function saveBook(book) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['books'], 'readwrite');
-                const store = transaction.objectStore('books');
-                const request = store.put(book);
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async function loadBooks() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['books'], 'readonly');
-                const store = transaction.objectStore('books');
-                const request = store.getAll();
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async function deleteBook(id) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['books'], 'readwrite');
-                const store = transaction.objectStore('books');
-                const request = store.delete(id);
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
         // Initialize with sample books
-        async function initSampleBooks() {
-            try {
-                const existingBooks = await loadBooks();
-                if (existingBooks.length === 0) {
-                    const sampleBooks = [
-                        {
-                            id: 1,
-                            title: "The Great Adventure",
-                            author: "Jane Smith",
-                            duration: 43200,
-                            progress: 0.3,
-                            icon: "🌟",
-                            dateAdded: new Date().toISOString()
-                        },
-                        {
-                            id: 2,
-                            title: "Mystery of the Lost City",
-                            author: "John Doe",
-                            duration: 36000,
-                            progress: 0.65,
-                            icon: "🏛️",
-                            dateAdded: new Date().toISOString()
-                        },
-                        {
-                            id: 3,
-                            title: "Space Odyssey 2024",
-                            author: "Alex Johnson",
-                            duration: 54000,
-                            progress: 0.1,
-                            icon: "🚀",
-                            dateAdded: new Date().toISOString()
-                        }
-                    ];
-                    
-                    for (const book of sampleBooks) {
-                        await saveBook(book);
-                    }
-                    books = sampleBooks;
-                } else {
-                    books = existingBooks;
+        function initSampleBooks() {
+            const sampleBooks = [
+                {
+                    id: 1,
+                    title: "The Great Adventure",
+                    author: "Jane Smith",
+                    duration: 43200, // 12 hours in seconds
+                    progress: 0.3,
+                    icon: "🌟"
+                },
+                {
+                    id: 2,
+                    title: "Mystery of the Lost City",
+                    author: "John Doe",
+                    duration: 36000, // 10 hours
+                    progress: 0.65,
+                    icon: "🏛️"
+                },
+                {
+                    id: 3,
+                    title: "Space Odyssey 2024",
+                    author: "Alex Johnson",
+                    duration: 54000, // 15 hours
+                    progress: 0.1,
+                    icon: "🚀"
                 }
-                
-                renderLibrary();
-                updateBookCount();
-            } catch (error) {
-                console.error('Error initializing books:', error);
-                books = [];
-                renderLibrary();
-                updateBookCount();
-            }
+            ];
+            
+            books = sampleBooks;
+            renderLibrary();
+            updateBookCount();
         }
 
         // Render library
@@ -734,18 +558,13 @@
         function createBookCard(book) {
             const card = document.createElement('div');
             card.className = 'book-card';
-            card.onclick = (e) => {
-                if (!e.target.classList.contains('delete-btn')) {
-                    selectBook(book);
-                }
-            };
+            card.onclick = () => selectBook(book);
             
             const progressPercent = Math.round(book.progress * 100);
             const totalHours = Math.floor(book.duration / 3600);
             const totalMinutes = Math.floor((book.duration % 3600) / 60);
             
             card.innerHTML = `
-                <button class="delete-btn" onclick="removeBook(${book.id})" title="Delete book">×</button>
                 <div class="book-cover">${book.icon}</div>
                 <div class="book-info">
                     <h3>${book.title}</h3>
@@ -763,26 +582,6 @@
             return card;
         }
 
-        // Remove book
-        async function removeBook(id) {
-            try {
-                await deleteBook(id);
-                books = books.filter(book => book.id !== id);
-                renderLibrary();
-                updateBookCount();
-                
-                if (currentBook && currentBook.id === id) {
-                    currentBook = null;
-                    player.classList.remove('active');
-                    audioPlayer.pause();
-                    isPlaying = false;
-                    playBtn.textContent = '▶️';
-                }
-            } catch (error) {
-                console.error('Error removing book:', error);
-            }
-        }
-
         // Select book
         function selectBook(book) {
             currentBook = book;
@@ -791,16 +590,15 @@
             document.getElementById('current-author').textContent = `By ${book.author}`;
             document.getElementById('current-cover').textContent = book.icon;
             
+            // Show player
             player.classList.add('active');
             
             if (book.audioFile) {
                 audioPlayer.src = book.audioFile;
                 audioPlayer.load();
-                audioPlayer.currentTime = book.progress * book.duration;
             }
             
             updatePlayerTime();
-            updateMediaSession();
         }
 
         // Toggle play/pause
@@ -813,13 +611,11 @@
                 isPlaying = false;
             } else {
                 if (currentBook.audioFile) {
-                    audioPlayer.play().catch(e => console.log('Playback failed:', e));
+                    audioPlayer.play();
                 }
                 playBtn.textContent = '⏸️';
                 isPlaying = true;
             }
-            
-            updateMediaSession();
         }
 
         // Skip functions
@@ -829,12 +625,10 @@
             } else {
                 audioPlayer.currentTime = 0;
             }
-            updateProgress();
         }
 
         function skipForward() {
             audioPlayer.currentTime += 30;
-            updateProgress();
         }
 
         // Change speed
@@ -843,25 +637,6 @@
             currentSpeed = speeds[speedIndex];
             audioPlayer.playbackRate = currentSpeed;
             document.getElementById('speed-btn').textContent = `${currentSpeed}x`;
-        }
-
-        // Update progress
-        async function updateProgress() {
-            if (currentBook && audioPlayer.duration) {
-                const progress = audioPlayer.currentTime / audioPlayer.duration;
-                currentBook.progress = progress;
-                
-                try {
-                    await saveBook(currentBook);
-                    const bookIndex = books.findIndex(b => b.id === currentBook.id);
-                    if (bookIndex !== -1) {
-                        books[bookIndex] = currentBook;
-                        renderLibrary();
-                    }
-                } catch (error) {
-                    console.error('Error saving progress:', error);
-                }
-            }
         }
 
         // Update time display
@@ -902,7 +677,7 @@
         }
 
         // Add book
-        async function addBook() {
+        function addBook() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
             const fileInput = document.getElementById('book-file');
@@ -918,8 +693,7 @@
                 author: author,
                 duration: 0,
                 progress: 0,
-                icon: "📚",
-                dateAdded: new Date().toISOString()
+                icon: "📚"
             };
             
             if (fileInput.files.length > 0) {
@@ -927,23 +701,65 @@
                 const audioUrl = URL.createObjectURL(file);
                 newBook.audioFile = audioUrl;
                 
+                // Create a temporary audio element to get duration
                 const tempAudio = new Audio(audioUrl);
-                tempAudio.addEventListener('loadedmetadata', async () => {
+                tempAudio.addEventListener('loadedmetadata', () => {
                     newBook.duration = tempAudio.duration;
-                    try {
-                        await saveBook(newBook);
-                        books.push(newBook);
-                        renderLibrary();
-                        updateBookCount();
-                    } catch (error) {
-                        console.error('Error saving book:', error);
-                    }
-                });
-            } else {
-                try {
-                    await saveBook(newBook);
-                    books.push(newBook);
                     renderLibrary();
-                    updateBookCount();
-                } catch (error) {
-                    console.error('Error saving book:', error);
+                });
+            }
+            
+            books.push(newBook);
+            renderLibrary();
+            updateBookCount();
+            closeAddBookModal();
+        }
+
+        // Update book count
+        function updateBookCount() {
+            document.getElementById('book-count').textContent = books.length;
+        }
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) || 
+                book.author.toLowerCase().includes(searchTerm)
+            );
+            
+            libraryGrid.innerHTML = '';
+            filteredBooks.forEach(book => {
+                const bookCard = createBookCard(book);
+                libraryGrid.appendChild(bookCard);
+            });
+        });
+
+        // Audio player event listeners
+        audioPlayer.addEventListener('timeupdate', updatePlayerTime);
+        audioPlayer.addEventListener('loadedmetadata', updatePlayerTime);
+        audioPlayer.addEventListener('ended', () => {
+            isPlaying = false;
+            playBtn.textContent = '▶️';
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('add-book-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'add-book-modal') {
+                closeAddBookModal();
+            }
+        });
+
+        // Enable background audio
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', togglePlay);
+            navigator.mediaSession.setActionHandler('pause', togglePlay);
+            navigator.mediaSession.setActionHandler('seekbackward', skipBackward);
+            navigator.mediaSession.setActionHandler('seekforward', skipForward);
+        }
+
+        // Initialize app
+        initSampleBooks();
+    </script>
+</body>
+</html>
