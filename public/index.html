@@ -6,17 +6,16 @@
   <title>Audiobook PWA</title>
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.7/dist/axios.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#000000">
   <link rel="apple-touch-icon" href="/icon.png">
 </head>
-<body class="bg-gray-900 min-h-screen text-white">
+<body class="bg-black min-h-screen text-white">
   <div id="root"></div>
   <script type="text/babel">
-    const initialAudiobooks = [
+    const audiobooks = [
       {
         id: 1,
         title: "Sample Audiobook 1",
@@ -36,7 +35,6 @@
     ];
 
     function AudiobookApp() {
-      const [audiobooks, setAudiobooks] = React.useState(initialAudiobooks);
       const [currentAudiobook, setCurrentAudiobook] = React.useState(null);
       const [isPlaying, setIsPlaying] = React.useState(false);
       const [progress, setProgress] = React.useState(0);
@@ -48,20 +46,18 @@
         url: "",
         duration: "",
       });
+      const [error, setError] = React.useState(null);
       const audioRef = React.useRef(new Audio());
 
       React.useEffect(() => {
-        // Load audiobooks from JSON file
-        axios.get('/audiobooks.json')
-          .then((response) => setAudiobooks(response.data))
-          .catch(() => setAudiobooks(initialAudiobooks));
-
         const audio = audioRef.current;
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('ended', () => setIsPlaying(false));
+        audio.addEventListener('error', () => setError('Audio failed to load. Check URL or network.'));
         return () => {
           audio.removeEventListener('timeupdate', updateProgress);
           audio.removeEventListener('ended', () => setIsPlaying(false));
+          audio.removeEventListener('error', () => setError('Audio failed to load.'));
         };
       }, []);
 
@@ -73,39 +69,71 @@
       };
 
       const selectAudiobook = (audiobook) => {
-        const audio = audioRef.current;
-        audio.src = audiobook.url;
-        setCurrentAudiobook(audiobook);
-        setIsPlaying(false);
-        setProgress(0);
-        audio.load();
+        try {
+          const audio = audioRef.current;
+          audio.src = audiobook.url;
+          setCurrentAudiobook(audiobook);
+          setIsPlaying(false);
+          setProgress(0);
+          setError(null);
+          audio.load();
+        } catch (e) {
+          setError('Failed to load audiobook: ' + e.message);
+        }
       };
 
       const togglePlay = () => {
-        const audio = audioRef.current;
-        if (isPlaying) {
-          audio.pause();
-        } else {
-          audio.play().catch((e) => console.error("Playback failed:", e));
+        try {
+          const audio = audioRef.current;
+          if (isPlaying) {
+            audio.pause();
+          } else {
+            audio.play().catch((e) => setError('Playback failed: ' + e.message));
+          }
+          setIsPlaying(!isPlaying);
+        } catch (e) {
+          setError('Playback error: ' + e.message);
         }
-        setIsPlaying(!isPlaying);
       };
 
       const handleProgressChange = (e) => {
-        const audio = audioRef.current;
-        const newTime = (e.target.value / 100) * audio.duration;
-        audio.currentTime = newTime;
-        setProgress(e.target.value);
+        try {
+          const audio = audioRef.current;
+          const newTime = (e.target.value / 100) * audio.duration;
+          audio.currentTime = newTime;
+          setProgress(e.target.value);
+        } catch (e) {
+          setError('Seek error: ' + e.message);
+        }
       };
 
       const handleAdminSubmit = (e) => {
         e.preventDefault();
-        const newId = audiobooks.length + 1;
-        const updatedAudiobooks = [...audiobooks, { id: newId, ...newAudiobook }];
-        setAudiobooks(updatedAudiobooks);
-        setNewAudiobook({ title: "", author: "", cover: "", url: "", duration: "" });
-        console.log("New audiobook added:", updatedAudiobooks);
+        try {
+          const newId = audiobooks.length + 1;
+          audiobooks.push({ id: newId, ...newAudiobook });
+          setNewAudiobook({ title: "", author: "", cover: "", url: "", duration: "" });
+          setIsAdmin(false);
+          setError(null);
+        } catch (e) {
+          setError('Failed to add audiobook: ' + e.message);
+        }
       };
+
+      if (error) {
+        return (
+          <div className="container mx-auto p-4 text-center">
+            <h1 className="text-2xl font-bold text-red-500">Error</h1>
+            <p>{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+            >
+              Clear Error
+            </button>
+          </div>
+        );
+      }
 
       return (
         <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
@@ -120,7 +148,7 @@
           </div>
 
           {isAdmin ? (
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+            <div className="bg-gray-900 p-6 rounded-lg shadow-xl">
               <h2 className="text-2xl font-semibold mb-4 text-gray-100">Add New Audiobook</h2>
               <div className="space-y-4">
                 <input
@@ -128,35 +156,35 @@
                   placeholder="Title"
                   value={newAudiobook.title}
                   onChange={(e) => setNewAudiobook({ ...newAudiobook, title: e.target.value })}
-                  className="w-full p-2 rounded border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full p-2 rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
                 />
                 <input
                   type="text"
                   placeholder="Author"
                   value={newAudiobook.author}
                   onChange={(e) => setNewAudiobook({ ...newAudiobook, author: e.target.value })}
-                  className="w-full p-2 rounded border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full p-2 rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
                 />
                 <input
                   type="text"
                   placeholder="Cover Image URL"
                   value={newAudiobook.cover}
                   onChange={(e) => setNewAudiobook({ ...newAudiobook, cover: e.target.value })}
-                  className="w-full p-2 rounded border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full p-2 rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
                 />
                 <input
                   type="text"
                   placeholder="Audio URL"
                   value={newAudiobook.url}
                   onChange={(e) => setNewAudiobook({ ...newAudiobook, url: e.target.value })}
-                  className="w-full p-2 rounded border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full p-2 rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
                 />
                 <input
                   type="text"
                   placeholder="Duration (e.g., 0:03)"
                   value={newAudiobook.duration}
                   onChange={(e) => setNewAudiobook({ ...newAudiobook, duration: e.target.value })}
-                  className="w-full p-2 rounded border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full p-2 rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
                 />
                 <button
                   onClick={handleAdminSubmit}
@@ -169,7 +197,7 @@
           ) : (
             <>
               {currentAudiobook && (
-                <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
+                <div className="bg-gray-900 p-6 rounded-lg shadow-xl mb-6">
                   <img
                     src={currentAudiobook.cover}
                     alt={currentAudiobook.title}
@@ -201,7 +229,7 @@
                   <div
                     key={audiobook.id}
                     onClick={() => selectAudiobook(audiobook)}
-                    className="bg-gray-800 p-4 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1"
+                    className="bg-gray-900 p-4 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1"
                   >
                     <img
                       src={audiobook.cover}
@@ -219,7 +247,16 @@
       );
     }
 
-    ReactDOM.render(<AudiobookApp />, document.getElementById('root'));
+    try {
+      ReactDOM.render(<AudiobookApp />, document.getElementById('root'));
+    } catch (e) {
+      document.getElementById('root').innerHTML = `
+        <div style="color: red; text-align: center; padding: 20px;">
+          <h1>Error Rendering App</h1>
+          <p>${e.message}</p>
+        </div>
+      `;
+    }
 
     // Register service worker
     if ('serviceWorker' in navigator) {
