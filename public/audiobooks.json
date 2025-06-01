@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Sample Audiobook 1",
+    "author": "Author One",
+    "cover": "https://via.placeholder.com/150/1f2937/ffffff?text=Book+1",
+    "url": "https://samplelib.com/lib/preview/mp3/sample-3s.mp3",
+    "duration": "0:03"
+  },
+  {
+    "id": 2,
+    "title": "Sample Audiobook 2",
+    "author": "Author Two",
+    "cover": "https://via.placeholder.com/150/4c1d95/ffffff?text=Book+2",
+    "url": "https://samplelib.com/lib/preview/mp3/sample-6s.mp3",
+    "duration": "0:06"
+  }
+]
