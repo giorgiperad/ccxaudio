@@ -38,8 +38,8 @@
       const [error, setError] = React.useState(null);
 
       React.useEffect(() => {
-        window.onerror = (msg) => {
-          setError(msg);
+        window.onerror = (msg, url, lineNo, columnNo, errorObj) => {
+          setError(`Error: ${msg} at ${url}:${lineNo}:${columnNo}`);
           return true;
         };
         return () => { window.onerror = null; };
@@ -61,6 +61,64 @@
       }
 
       return children;
+    }
+
+    function AudioVisualizer({ isPlaying, audioRef }) {
+      const canvasRef = React.useRef(null);
+      const analyserRef = React.useRef(null);
+      const animationFrameRef = React.useRef(null);
+
+      React.useEffect(() => {
+        if (!isPlaying) return;
+
+        const audio = audioRef.current;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        analyserRef.current = analyser;
+        analyser.fftSize = 128;
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const draw = () => {
+          if (!isPlaying) return;
+          analyser.getByteFrequencyData(dataArray);
+          ctx.fillStyle = 'rgb(0, 0, 0)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          const barWidth = (canvas.width / bufferLength) * 2.5;
+          let x = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            const barHeight = dataArray[i] * 0.5;
+            ctx.fillStyle = `rgb(${barHeight + 100}, 79, 237)`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
+          }
+
+          animationFrameRef.current = requestAnimationFrame(draw);
+        };
+
+        draw();
+
+        return () => {
+          cancelAnimationFrame(animationFrameRef.current);
+          if (audioContext.state !== 'closed') {
+            audioContext.close();
+          }
+        };
+      }, [isPlaying]);
+
+      return (
+        <canvas
+          ref={canvasRef}
+          className="w-full max-w-md h-24"
+        />
+      );
     }
 
     function AudiobookApp() {
@@ -85,9 +143,7 @@
           }
         });
         audio.addEventListener('ended', () => setIsPlaying(false));
-        audio.addEventListener('error', () => {
-          console.error('Audio error:', audio.error);
-        });
+        audio.addEventListener('error', () => console.error('Audio error:', audio.error));
         return () => {
           audio.removeEventListener('timeupdate', () => {});
           audio.removeEventListener('ended', () => {});
@@ -212,11 +268,12 @@
                     >
                       {isPlaying ? 'Pause' : 'Play'}
                     </button>
+                    <AudioVisualizer isPlaying={isPlaying} audioRef={audioRef} />
                     <input
                       type="range"
                       value={progress}
                       onChange={handleProgressChange}
-                      className="w-full max-w-md accent-indigo-600"
+                      className="w-full max-w-md accent-indigo-600 mt-4"
                       min="0"
                       max="100"
                     />
